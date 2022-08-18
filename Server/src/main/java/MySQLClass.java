@@ -2,12 +2,13 @@ import com.sun.rowset.CachedRowSetImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 public class MySQLClass {
 
-    public MySQLClass(){
+    public MySQLClass(Collection<MySQLClass> values){
         baseCreate();
         tableAuthorizationCreate();
         tableSubscribeCreate();

@@ -3,18 +3,21 @@ import com.google.gson.Gson;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.rmi.RemoteException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class RemoteWeatherBotServer implements WeatherBot{
     private final static String JSON_FILE_NAME = "Server/citylist.json";
-    MySQLClass sql = new MySQLClass();
+//    MySQLClass blob() = new MySQLClass();
     OpenWeatherMapJsonParser openWeatherMapJsonParser = new OpenWeatherMapJsonParser();
+    Map<String, MySQLClass> cache = Singleton.getInstance().getCache();
     List<Integer> listUsers;
     List<Integer> listSubscribe;
     int countAuthorization;
     int countSubscribe;
+
+    public MySQLClass blob(){
+        return new MySQLClass(cache.values()) ;
+    }
 
     private static List<CityData> jsonToCityData(String fileName) throws FileNotFoundException {
         return Arrays.asList(new Gson().fromJson(new FileReader(fileName), CityData[].class));
@@ -22,12 +25,12 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String checkAuthorization(String login, String password) throws RemoteException {
-        String s = sql.checkUser(login, password);
+        String s = blob().checkUser(login, password);
         if(s != null && !s.isEmpty()){
             if(s.equals("NEW REGISTRATION")){
                 System.out.println(s);
                 incrementAuthorization();
-                sql.addAuthorization(new User(countAuthorization, login, password));
+                blob().addAuthorization(new User(countAuthorization, login, password));
                 return s;
             }
             else{
@@ -38,7 +41,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
         }
         else {
             incrementAuthorization();
-            sql.addAuthorization(new User(countAuthorization, login, password));
+            blob().addAuthorization(new User(countAuthorization, login, password));
             System.out.println("new registration");
             return "new registration";
         }
@@ -81,7 +84,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
-        String city = sql.getCityByUserName(userName);
+        String city = blob().getCityByUserName(userName);
         return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
     }
 
@@ -94,24 +97,24 @@ public class RemoteWeatherBotServer implements WeatherBot{
 //        if(subscribeTime != null && !subscribeTime.isEmpty()){
 //            date  = format.parse(subscribeTime);
 //        }
-        return sql.getSubscribeTimeByUserName(userName);
+        return blob().getSubscribeTimeByUserName(userName);
     }
 
     @Override
     public String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
-        boolean b = sql.checkSubscribe(userName);
+        boolean b = blob().checkSubscribe(userName);
         if(b == true){
-            sql.replaceSubscribeTime(userName, cityName, subscribeTime);
+            blob().replaceSubscribeTime(userName, cityName, subscribeTime);
         }
         else{
             incrementSubscribe();
-            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
+            blob().addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
         }
         return null;
     }
 
     public void incrementSubscribe(){
-        listSubscribe = sql.checkSubscribeId();
+        listSubscribe = blob().checkSubscribeId();
         if(listSubscribe != null && !listSubscribe.isEmpty()){
             countSubscribe = listSubscribe.get(listSubscribe.size()-1);
             countSubscribe++;
@@ -122,7 +125,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     public void incrementAuthorization(){
-        listUsers = sql.checkUserId();
+        listUsers = blob().checkUserId();
         if(listUsers != null && !listUsers.isEmpty()){
             countAuthorization = listUsers.get(listUsers.size()-1);
             countAuthorization++;
