@@ -3,10 +3,9 @@ import com.google.gson.Gson;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class RemoteWeatherBotServer implements WeatherBot{
     private final static String JSON_FILE_NAME = "Server/citylist.json";
@@ -75,14 +74,38 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     @Override
-    public String addSubscribe(String userName, String subscribeTime) throws RemoteException {
+    public String getReadyForecastById(int cityId) throws RemoteException {
+//        System.out.println(openWeatherMapJsonParser.getReadyForecastById(cityId));
+        return openWeatherMapJsonParser.getReadyForecastById(cityId);
+    }
+
+    @Override
+    public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
+        String city = sql.getCityByUserName(userName);
+        return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
+    }
+
+    @Override
+    public String getSubscribeTimeByUserName(String userName) throws RemoteException {
+//        String subscribeTime = sql.getSubscribeTimeByUserName(userName);
+//        SimpleDateFormat format = new SimpleDateFormat();
+//        format.applyPattern("HH:mm");
+//        Date date = new Date();
+//        if(subscribeTime != null && !subscribeTime.isEmpty()){
+//            date  = format.parse(subscribeTime);
+//        }
+        return sql.getSubscribeTimeByUserName(userName);
+    }
+
+    @Override
+    public String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
         boolean b = sql.checkSubscribe(userName);
         if(b == true){
-            sql.replaceSubscribeTime(userName, subscribeTime);
+            sql.replaceSubscribeTime(userName, cityName, subscribeTime);
         }
         else{
             incrementSubscribe();
-            sql.addSubscribe(new Subscribe(countSubscribe, userName, subscribeTime));
+            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
         }
         return null;
     }

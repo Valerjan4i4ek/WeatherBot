@@ -1,11 +1,13 @@
 public class Subscribe {
     private int id;
     private String userName;
+    private String cityName;
     private String subscribeTime;
 
-    public Subscribe(int id, String userName, String subscribeTime) {
+    public Subscribe(int id, String userName, String cityName, String subscribeTime) {
         this.id = id;
         this.userName = userName;
+        this.cityName = cityName;
         this.subscribeTime = subscribeTime;
     }
 
@@ -23,6 +25,14 @@ public class Subscribe {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getCityName() {
+        return cityName;
+    }
+
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
     }
 
     public String getSubscribeTime() {

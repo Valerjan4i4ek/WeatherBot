@@ -1,3 +1,5 @@
+import com.sun.rowset.CachedRowSetImpl;
+
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.LinkedList;
@@ -62,7 +64,7 @@ public class MySQLClass {
                 conn = getConnection("WeatherBot");
                 st = conn.createStatement();
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS WeatherBot.subscribe " +
-                        "(id INT NOT NULL, userName VARCHAR(20) NOT NULL, subscribeTime VARCHAR(20) NOT NULL)");
+                        "(id INT NOT NULL, userName VARCHAR(20) NOT NULL, cityName VARCHAR(20) NOT NULL, subscribeTime VARCHAR(20) NOT NULL)");
             }
             finally {
                 try{
@@ -128,10 +130,11 @@ public class MySQLClass {
 
             try{
                 conn = getConnection("WeatherBot");
-                ps = conn.prepareStatement("INSERT INTO subscribe (id, userName, subscribeTime) VALUES (?, ?, ?)");
+                ps = conn.prepareStatement("INSERT INTO subscribe (id, userName, cityName, subscribeTime) VALUES (?, ?, ?, ?)");
                 ps.setInt(1, subscribe.getId());
                 ps.setString(2, subscribe.getUserName());
-                ps.setString(3, subscribe.getSubscribeTime());
+                ps.setString(3, subscribe.getCityName());
+                ps.setString(4, subscribe.getSubscribeTime());
                 ps.executeUpdate();
             } finally {
                 try{
@@ -154,17 +157,18 @@ public class MySQLClass {
         }
     }
 
-    public void replaceSubscribeTime(String userName, String subscribeTime){
+    public void replaceSubscribeTime(String userName, String cityName, String subscribeTime){
         try{
             Connection conn = null;
             PreparedStatement ps = null;
 
             try{
                 conn = getConnection("WeatherBot");
-                String query = "UPDATE subscribe SET subscribeTime = ? WHERE userName = ?";
+                String query = "UPDATE subscribe SET subscribeTime = ?, cityName = ? WHERE userName = ?";
                 ps = conn.prepareStatement(query);
                 ps.setString(1, subscribeTime);
-                ps.setString(2, userName);
+                ps.setString(2, cityName);
+                ps.setString(3, userName);
                 ps.executeUpdate();
             } finally {
                 try{
@@ -218,6 +222,109 @@ public class MySQLClass {
         } catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    public String getCityByUserName(String userName){
+        String  city = "";
+        try{
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            try{
+                conn = getConnection("WeatherBot");
+                String query = "SELECT cityName FROM subscribe WHERE userName = ?";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, userName);
+                rs = ps.executeQuery();
+
+                while (rs.next()){
+                    city = rs.getString("cityName");
+                }
+            }finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return city;
+    }
+
+    public String getSubscribeTimeByUserName(String userName){
+        String subscribeTime = "";
+        try{
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+//            CachedRowSetImpl crs = null;
+
+            try{
+                conn = getConnection("WeatherBot");
+                String query = "SELECT subscribeTime FROM subscribe WHERE userName = ?";
+                ps = conn.prepareStatement(query);
+                ps.setString(1, userName);
+                rs = ps.executeQuery();
+//                crs = new CachedRowSetImpl();
+//                crs.populate(rs);
+
+                while (rs.next()){
+                    subscribeTime = rs.getString("subscribeTime");
+                }
+            } finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+//                try {
+//                    if (crs != null) {
+//                        crs.close();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return subscribeTime;
     }
 
     public boolean checkSubscribe(String userName){

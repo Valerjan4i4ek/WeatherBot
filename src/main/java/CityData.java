@@ -3,7 +3,7 @@ public class CityData {
     private String name;
     private String state;
     private String country;
-    private String coord;
+    private Coord coord;
 
     public int getId() {
         return id;
@@ -37,11 +37,11 @@ public class CityData {
         this.country = country;
     }
 
-    public String getCoord() {
+    public Coord getCoord() {
         return coord;
     }
 
-    public void setCoord(String coord) {
+    public void setCoord(Coord coord) {
         this.coord = coord;
     }
 
@@ -52,7 +52,7 @@ public class CityData {
                 ", name='" + name + '\'' +
                 ", state='" + state + '\'' +
                 ", country='" + country + '\'' +
-                ", coord='" + coord + '\'' +
+                ", coord=" + coord +
                 '}';
     }
 }
