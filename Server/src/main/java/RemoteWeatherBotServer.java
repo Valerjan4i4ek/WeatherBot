@@ -4,19 +4,26 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RemoteWeatherBotServer implements WeatherBot{
     private final static String JSON_FILE_NAME = "Server/citylist.json";
-//    MySQLClass blob() = new MySQLClass();
+    MySQLClass sql = new MySQLClass();
     OpenWeatherMapJsonParser openWeatherMapJsonParser = new OpenWeatherMapJsonParser();
-    Map<String, MySQLClass> cache = Singleton.getInstance().getCache();
+    Map<Integer, Map<String, String>> authorizationCache = sql.getAuthorizationCache();
+    Map<String, String> authorizationCacheInnerMap = getInnerMapAuthorization(authorizationCache);
+    Map<Integer, Map<String, Map<String, String>>> subscribeCache = sql.getSubscribeCache();
     List<Integer> listUsers;
     List<Integer> listSubscribe;
     int countAuthorization;
     int countSubscribe;
 
-    public MySQLClass cache(){
-        return new MySQLClass(cache.values()) ;
+    public Map<String, String> getInnerMapAuthorization(Map<Integer, Map<String, String>> map){
+        Map<String, String> returnMap = new ConcurrentHashMap<>();
+        for(Map.Entry<Integer, Map<String, String>> entry : map.entrySet()){
+            returnMap.putAll(entry.getValue());
+        }
+        return returnMap;
     }
 
     private static List<CityData> jsonToCityData(String fileName) throws FileNotFoundException {
@@ -25,26 +32,54 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String checkAuthorization(String login, String password) throws RemoteException {
-        String s = cache().checkUser(login, password);
-        if(s != null && !s.isEmpty()){
-            if(s.equals("NEW REGISTRATION")){
-                System.out.println(s);
-                incrementAuthorization();
-                cache().addAuthorization(new User(countAuthorization, login, password));
-                return s;
+        if(authorizationCache != null && !authorizationCache.isEmpty()){
+            if(authorizationCacheInnerMap.containsKey(login) && authorizationCacheInnerMap.get(login).equals(password)){
+                System.out.println("AUTHORIZATION IS OK");
+                return "AUTHORIZATION IS OK";
+            }
+            else if(authorizationCacheInnerMap.containsKey(login) && !authorizationCacheInnerMap.get(login).equals(password)){
+                System.out.println("INCORRECT PASSWORD");
+                return "INCORRECT PASSWORD";
             }
             else{
-
-                System.out.println(s);
-                return s;
+                incrementAuthorization();
+                authorizationCacheInnerMap.put(login, password);
+                authorizationCache.put(countAuthorization, authorizationCacheInnerMap);
+                sql.addAuthorization(new User(countAuthorization, login, password));
+                System.out.println("NEW REGISTRATION");
+                return "NEW REGISTRATION";
             }
         }
-        else {
+        else{
             incrementAuthorization();
-            cache().addAuthorization(new User(countAuthorization, login, password));
+            authorizationCacheInnerMap.put(login, password);
+            authorizationCache.put(countAuthorization, authorizationCacheInnerMap);
+            sql.addAuthorization(new User(countAuthorization, login, password));
             System.out.println("new registration");
             return "new registration";
         }
+
+
+//        String s = sql.checkUser(login, password);
+//        if(s != null && !s.isEmpty()){
+//            if(s.equals("NEW REGISTRATION")){
+//                System.out.println(s);
+//                incrementAuthorization();
+//                sql.addAuthorization(new User(countAuthorization, login, password));
+//                return s;
+//            }
+//            else{
+//
+//                System.out.println(s);
+//                return s;
+//            }
+//        }
+//        else {
+//            incrementAuthorization();
+//            sql.addAuthorization(new User(countAuthorization, login, password));
+//            System.out.println("new registration");
+//            return "new registration";
+//        }
     }
 
     @Override
@@ -78,43 +113,82 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String getReadyForecastById(int cityId) throws RemoteException {
-//        System.out.println(openWeatherMapJsonParser.getReadyForecastById(cityId));
         return openWeatherMapJsonParser.getReadyForecastById(cityId);
     }
 
     @Override
     public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
-        String city = cache().getCityByUserName(userName);
+        String city = "";
+        if(subscribeCache != null && !subscribeCache.isEmpty()){
+            for(Map.Entry<Integer, Map<String, Map<String, String>>> entry : subscribeCache.entrySet()){
+                for(Map.Entry<String, Map<String, String>> pair : entry.getValue().entrySet()){
+                    if(pair.getKey().equalsIgnoreCase(userName)){
+                        for(Map.Entry<String, String> set : pair.getValue().entrySet()){
+                            city = set.getKey();
+                        }
+                    }
+                }
+            }
+        }
+//        String city = sql.getCityByUserName(userName);
         return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
     }
 
     @Override
     public String getSubscribeTimeByUserName(String userName) throws RemoteException {
-//        String subscribeTime = sql.getSubscribeTimeByUserName(userName);
-//        SimpleDateFormat format = new SimpleDateFormat();
-//        format.applyPattern("HH:mm");
-//        Date date = new Date();
-//        if(subscribeTime != null && !subscribeTime.isEmpty()){
-//            date  = format.parse(subscribeTime);
-//        }
-        return cache().getSubscribeTimeByUserName(userName);
+        String subscribeTime = "";
+        for(Map.Entry<Integer, Map<String, Map<String, String>>> entry : subscribeCache.entrySet()){
+            for(Map.Entry<String, Map<String, String>> pair : entry.getValue().entrySet()){
+                if(pair.getKey().equalsIgnoreCase(userName)){
+                    for(Map.Entry<String, String> set : pair.getValue().entrySet()){
+                        subscribeTime = set.getValue();
+                    }
+                }
+            }
+        }
+        return subscribeTime;
+//        return sql.getSubscribeTimeByUserName(userName);
     }
 
     @Override
     public String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
-        boolean b = cache().checkSubscribe(userName);
-        if(b == true){
-            cache().replaceSubscribeTime(userName, cityName, subscribeTime);
-        }
-        else{
+        Map<String, String> set = new ConcurrentHashMap<>();
+        Map<String, Map<String, String>> pair2 = new ConcurrentHashMap<>();
+
+        if(subscribeCache != null && !subscribeCache.isEmpty()){
+            for(Map.Entry<Integer, Map<String, Map<String, String>>> entry : subscribeCache.entrySet()){
+                for(Map.Entry<String, Map<String, String>> pair : entry.getValue().entrySet()){
+                    if(pair.getKey().equalsIgnoreCase(userName)){
+                        set.put(cityName, subscribeTime);
+                        pair2.put(userName, set);
+                        subscribeCache.put(entry.getKey(), pair2);
+                        sql.replaceSubscribeTime(userName, cityName, subscribeTime);
+                    }
+                }
+            }
+        }else{
             incrementSubscribe();
-            cache().addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
+            set.put(cityName, subscribeTime);
+            pair2.put(userName, set);
+            subscribeCache.put(countSubscribe, pair2);
+            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
         }
-        return null;
+
+
+
+//        boolean b = sql.checkSubscribe(userName);
+//        if(b == true){
+//            sql.replaceSubscribeTime(userName, cityName, subscribeTime);
+//        }
+//        else{
+//            incrementSubscribe();
+//            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
+//        }
+        return "";
     }
 
     public void incrementSubscribe(){
-        listSubscribe = cache().checkSubscribeId();
+        listSubscribe = sql.checkSubscribeId();
         if(listSubscribe != null && !listSubscribe.isEmpty()){
             countSubscribe = listSubscribe.get(listSubscribe.size()-1);
             countSubscribe++;
@@ -125,7 +199,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     public void incrementAuthorization(){
-        listUsers = cache().checkUserId();
+        listUsers = sql.checkUserId();
         if(listUsers != null && !listUsers.isEmpty()){
             countAuthorization = listUsers.get(listUsers.size()-1);
             countAuthorization++;

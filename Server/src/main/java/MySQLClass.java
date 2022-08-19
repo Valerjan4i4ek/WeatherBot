@@ -5,10 +5,12 @@ import java.sql.*;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MySQLClass {
 
-    public MySQLClass(Collection<MySQLClass> values){
+    public MySQLClass(){
         baseCreate();
         tableAuthorizationCreate();
         tableSubscribeCreate();
@@ -271,13 +273,116 @@ public class MySQLClass {
         return city;
     }
 
+    public Map<Integer, Map<String, Map<String, String>>> getSubscribeCache(){
+        Map<Integer, Map<String, Map<String, String>>> map = new ConcurrentHashMap<>();
+        Map<String, Map<String, String>> firstInnerMap = new ConcurrentHashMap<>();
+        Map<String, String> secondInnerMap = new ConcurrentHashMap<>();
+        try{
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            try{
+                conn = getConnection("WeatherBot");
+                String query = "SELECT * FROM subscribe";
+                ps = conn.prepareStatement(query);
+                rs = ps.executeQuery();
+
+                while (rs.next()){
+                    int id = rs.getInt("id");
+                    String userName = rs.getString("userName");
+                    String cityName = rs.getString("cityName");
+                    String subscribeTime = rs.getString("subscribeTime");
+
+                    secondInnerMap.put(cityName, subscribeTime);
+                    firstInnerMap.put(userName, secondInnerMap);
+                    map.put(id, firstInnerMap);
+                }
+            }finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    public Map<Integer, Map<String, String>> getAuthorizationCache(){
+        Map<Integer, Map<String, String>> map = new ConcurrentHashMap<>();
+        Map<String, String> innerMap = new ConcurrentHashMap<>();
+        try{
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            try{
+                conn = getConnection("WeatherBot");
+                String query = "SELECT * FROM authorization";
+                ps = conn.prepareStatement(query);
+                rs = ps.executeQuery();
+
+                while (rs.next()){
+                    int id = rs.getInt("id");
+                    String login = rs.getString("login");
+                    String password = rs.getString("password");
+                    innerMap.put(login, password);
+                    map.put(id, innerMap);
+                }
+            }finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return map;
+    }
+
     public String getSubscribeTimeByUserName(String userName){
         String subscribeTime = "";
         try{
             Connection conn = null;
             PreparedStatement ps = null;
             ResultSet rs = null;
-//            CachedRowSetImpl crs = null;
 
             try{
                 conn = getConnection("WeatherBot");
@@ -285,8 +390,6 @@ public class MySQLClass {
                 ps = conn.prepareStatement(query);
                 ps.setString(1, userName);
                 rs = ps.executeQuery();
-//                crs = new CachedRowSetImpl();
-//                crs.populate(rs);
 
                 while (rs.next()){
                     subscribeTime = rs.getString("subscribeTime");
@@ -313,13 +416,6 @@ public class MySQLClass {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-//                try {
-//                    if (crs != null) {
-//                        crs.close();
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
             }
         } catch (Exception e){
             e.printStackTrace();
