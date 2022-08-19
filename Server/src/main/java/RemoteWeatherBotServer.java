@@ -15,7 +15,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
     int countAuthorization;
     int countSubscribe;
 
-    public MySQLClass blob(){
+    public MySQLClass cache(){
         return new MySQLClass(cache.values()) ;
     }
 
@@ -25,12 +25,12 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String checkAuthorization(String login, String password) throws RemoteException {
-        String s = blob().checkUser(login, password);
+        String s = cache().checkUser(login, password);
         if(s != null && !s.isEmpty()){
             if(s.equals("NEW REGISTRATION")){
                 System.out.println(s);
                 incrementAuthorization();
-                blob().addAuthorization(new User(countAuthorization, login, password));
+                cache().addAuthorization(new User(countAuthorization, login, password));
                 return s;
             }
             else{
@@ -41,7 +41,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
         }
         else {
             incrementAuthorization();
-            blob().addAuthorization(new User(countAuthorization, login, password));
+            cache().addAuthorization(new User(countAuthorization, login, password));
             System.out.println("new registration");
             return "new registration";
         }
@@ -84,7 +84,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
 
     @Override
     public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
-        String city = blob().getCityByUserName(userName);
+        String city = cache().getCityByUserName(userName);
         return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
     }
 
@@ -97,24 +97,24 @@ public class RemoteWeatherBotServer implements WeatherBot{
 //        if(subscribeTime != null && !subscribeTime.isEmpty()){
 //            date  = format.parse(subscribeTime);
 //        }
-        return blob().getSubscribeTimeByUserName(userName);
+        return cache().getSubscribeTimeByUserName(userName);
     }
 
     @Override
     public String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
-        boolean b = blob().checkSubscribe(userName);
+        boolean b = cache().checkSubscribe(userName);
         if(b == true){
-            blob().replaceSubscribeTime(userName, cityName, subscribeTime);
+            cache().replaceSubscribeTime(userName, cityName, subscribeTime);
         }
         else{
             incrementSubscribe();
-            blob().addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
+            cache().addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime));
         }
         return null;
     }
 
     public void incrementSubscribe(){
-        listSubscribe = blob().checkSubscribeId();
+        listSubscribe = cache().checkSubscribeId();
         if(listSubscribe != null && !listSubscribe.isEmpty()){
             countSubscribe = listSubscribe.get(listSubscribe.size()-1);
             countSubscribe++;
@@ -125,7 +125,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     public void incrementAuthorization(){
-        listUsers = blob().checkUserId();
+        listUsers = cache().checkUserId();
         if(listUsers != null && !listUsers.isEmpty()){
             countAuthorization = listUsers.get(listUsers.size()-1);
             countAuthorization++;
