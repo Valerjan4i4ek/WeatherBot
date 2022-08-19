@@ -7,8 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Client" />
-        <module name="Server" />
+        <module name="Client (1)" />
+        <module name="WeatherBot" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Server" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
