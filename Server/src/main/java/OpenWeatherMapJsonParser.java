@@ -68,7 +68,7 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
             String city = parseForecastDataFromListCoordinate(linesOfForecast);
             result = getReadyForecast(city);
         } catch (IllegalArgumentException e) {
-            return String.format("Can't find \"%s%s\" coordinate. Try another one, for example: \"48.0000\" or \"51.00\"");
+            return String.format("Can't find \"%s %s\" coordinate. Try another one, for example: \"48.0000\" or \"51.00\"");
         } catch (Exception e) {
             e.printStackTrace();
             return "The service is not available, please try lateR";
@@ -81,12 +81,12 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
         String result;
         try{
             String jsonRawData = downloadJsonRawDataById(cityId);
-            System.out.println(jsonRawData);
-            System.out.println();
+//            System.out.println(jsonRawData);
+//            System.out.println();
 //            List<String> linesOfForecast = convertRawDataToListCoordinate(jsonRawData);
 //            System.out.println(linesOfForecast);
-            String s = parseForecastDataFromListById(jsonRawData);
-            result = String.format("%s:%s%s", cityId, System.lineSeparator(), /*parseForecastDataFromListById(linesOfForecast)*/s);
+//            String s = parseForecastDataFromListById(jsonRawData);
+            result = String.format("%s %s", System.lineSeparator(), parseForecastDataFromListById(jsonRawData));
         }catch (IllegalArgumentException e) {
             return String.format("Can't find \"%s\" city. Try another one, for example: \"Dnipro\" or \"Manchester\"", cityId);
         } catch (Exception e) {
@@ -259,31 +259,6 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
         return sb.toString();
     }
 
-//    private static String parseForecastDataFromListById(List<String> weatherList) throws Exception{
-//        final StringBuffer sb = new StringBuffer();
-//        ObjectMapper objectMapper = new ObjectMapper();
-//
-//        for(String line : weatherList){
-//            JsonNode mainNode;
-//            JsonNode weatherArrNode;
-//            JsonNode cloudsNode;
-//
-//            try{
-//                mainNode = objectMapper.readTree(line).get("main");
-//                weatherArrNode = objectMapper.readTree(line).get("weather");
-//
-//                for (final JsonNode objNode : weatherArrNode) {
-//                    cloudsNode = objectMapper.readTree(line).get("clouds");
-//                    sb.append(formatForecastDataByID(objNode.get("main").toString(), mainNode.get("temp").asDouble(), cloudsNode.toString()));
-//                }
-//
-//            }catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        return sb.toString();
-//    }
-
     private static String parseForecastDataFromList(List<String> weatherList) throws Exception {
         final StringBuffer sb = new StringBuffer();
         ObjectMapper objectMapper = new ObjectMapper();
@@ -317,11 +292,13 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
 //        String formattedDateTime = forecastDateTime.format(OUTPUT_DATE_TIME_FORMAT);
 
         String formattedTemperature;
-        long roundedTemperature = Math.round(temperature);
+        double roundedTemperature = Math.round(temperature);
         if (roundedTemperature > 0) {
             formattedTemperature = "+" + String.valueOf(Math.round(temperature));
+            formattedTemperature = removeLastChar(formattedTemperature);
         } else {
             formattedTemperature = String.valueOf(Math.round(temperature));
+            formattedTemperature = removeLastChar(formattedTemperature);
         }
 
         String formattedDescription = description.replaceAll("\"", "");
@@ -329,7 +306,7 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
 
 //        String weatherIconCode = WeatherUtils.weatherIconsCodes.get(formattedDescription);
 
-        return String.format("  %s %s %s clouds: %s", formattedTemperature, formattedDescription, System.lineSeparator(), formattedClouds);
+        return String.format("temperature: %s precipitation: %s  %s clouds: %s percent", formattedTemperature, formattedDescription, System.lineSeparator(), formattedClouds);
     }
 
     private static String formatForecastData(String date, String description, double temperature, String clouds) throws Exception {
@@ -349,6 +326,10 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
 
 //        String weatherIconCode = WeatherUtils.weatherIconsCodes.get(formattedDescription);
 
-        return String.format("%s   %s %s %s clouds: %s \n", formattedDateTime, formattedTemperature, formattedDescription, System.lineSeparator(), formattedClouds);
+        return String.format("%s  temperature: %s  precipitation: %s  %s clouds: %s percent \n", formattedDateTime, formattedTemperature, formattedDescription, System.lineSeparator(), formattedClouds);
+    }
+
+    public static String removeLastChar(String s) {
+        return (s == null || s.length() == 0) ? null : (s.substring(0, s.length() - 1));
     }
 }

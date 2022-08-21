@@ -2,6 +2,7 @@ import java.io.FileNotFoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 
 public interface WeatherBot extends Remote{
@@ -12,5 +13,5 @@ public interface WeatherBot extends Remote{
     String getReadyForecastWithThreeHourStep(String userName) throws RemoteException;
     String getSubscribeTimeByUserName(String userName) throws RemoteException;
     String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException;
-    Map<Integer, Map<String, String>> sameNameCitiesCount(String cityName) throws RemoteException, FileNotFoundException;
+    List<CityData> sameNameCitiesCount(String cityName) throws RemoteException, FileNotFoundException;
 }

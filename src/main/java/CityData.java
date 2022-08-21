@@ -1,4 +1,6 @@
-public class CityData {
+import java.io.Serializable;
+
+public class CityData implements Serializable {
     private int id;
     private String name;
     private String state;

@@ -21,22 +21,21 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     @Override
-    public Map<Integer, Map<String, String>> sameNameCitiesCount(String cityName) throws RemoteException, FileNotFoundException {
+    public List<CityData> sameNameCitiesCount(String cityName)throws RemoteException, FileNotFoundException{
         List<CityData> cityDataList = jsonToCityData(JSON_FILE_NAME);
-        Map<Integer, Map<String, String>> returnMap = new HashMap<>();
-        Map<String, String> innerMap = new HashMap<>();
+        List<CityData> list = new ArrayList<>();
         if(!cityDataList.isEmpty()){
-            for (int i = 0; i < cityDataList.size(); i++) {
-                if(cityDataList.get(i).getName().equalsIgnoreCase(cityName)){
-                    innerMap.put(cityDataList.get(i).getName(), cityDataList.get(i).getCountry());
-                    returnMap.put(cityDataList.get(i).getId(), innerMap);
+            for (CityData cityData : cityDataList) {
+                if (cityData.getName().equalsIgnoreCase(cityName)) {
+                    list.add(cityData);
                 }
             }
         }
-        for(Map.Entry<Integer, Map<String, String>> entry : returnMap.entrySet()){
-            System.out.println(entry.getKey() + " " + entry.getValue());
+        System.out.println();
+        for (CityData cityData : list) {
+            System.out.println(cityData.getId() + " " + cityData.getName() + " " + cityData.getCountry());
         }
-        return returnMap;
+        return list;
     }
 
     @Override

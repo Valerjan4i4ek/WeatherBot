@@ -9,6 +9,7 @@ import java.rmi.registry.Registry;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Client {
@@ -51,6 +52,17 @@ public class Client {
             authorization();
         }
         else{
+            new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted()){
+                    try {
+                        Thread.sleep(30000);
+                        getSubscribeTimeByUserName(user.getUserName());
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
             System.out.println("Do u wanna check weather or make subscribe? Choose w or s:");
             weatherOrSubscribe = reader.readLine();
             if(weatherOrSubscribe.equalsIgnoreCase("w")){
@@ -77,17 +89,7 @@ public class Client {
             }
 
             System.out.println();
-            new Thread(() -> {
-                while (!Thread.currentThread().isInterrupted()){
-                    try {
-                        Thread.sleep(30000);
-                        getSubscribeTimeByUserName(user.getUserName());
-                    } catch (IOException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
 
-                }
-            }).start();
         }
     }
 
@@ -96,33 +98,33 @@ public class Client {
         String forecast = weatherBot.getReadyForecastWithThreeHourStep(userName);
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");
         String currentTime = format.format(System.currentTimeMillis());
-        while (true){
-            if(subscribeTimeByUserName.equalsIgnoreCase(currentTime)){
-                System.out.println(forecast);
-            }
-            break;
+        if(subscribeTimeByUserName.equalsIgnoreCase(currentTime)){
+            System.out.println(forecast);
         }
+//        while (true){
+//            if(subscribeTimeByUserName.equalsIgnoreCase(currentTime)){
+//                System.out.println(forecast);
+//            }
+//            break;
+//        }
     }
 
     public static void getReadyForecast(String city) throws IOException {
-//        String s = weatherBot.getReadyForecast(city);
-//        System.out.println("weather in " + s);
-        Map<Integer, Map<String, String>> map = weatherBot.sameNameCitiesCount(city);
+        List<CityData> list = weatherBot.sameNameCitiesCount(city);
         Map<Integer, Integer>  checkedMap = new LinkedHashMap<>();
         int count = 1;
         int cityNumber = 0;
         String id;
-        if(map.size() == 1){
+
+        if(list.size() == 1){
             String s = weatherBot.getReadyForecast(city);
             System.out.println("weather in " + s);
         }
-        else if(map.size() > 1){
-            for(Map.Entry<Integer, Map<String, String>> entry : map.entrySet()){
+        else if(list.size() > 1){
+            for (CityData cityData : list) {
                 System.out.print(count + " ");
-                for(Map.Entry<String, String> pair : entry.getValue().entrySet()){
-                    System.out.println(pair.getKey() + " " + pair.getValue());
-                }
-                checkedMap.put(entry.getKey(), count);
+                System.out.println(cityData.getId() + " " + cityData.getName() + " " + cityData.getCountry());
+                checkedMap.put(cityData.getId(), count);
                 count++;
             }
             System.out.println("choose your city (number)");
