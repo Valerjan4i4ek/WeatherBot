@@ -11,7 +11,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MySQLClass {
-    String fileName = "Server/database.properties";
+    private final static String fileName = "Server/src/main/resources/database.properties";
+
+    static{
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
     public MySQLClass(){
 //        init();
@@ -20,39 +28,41 @@ public class MySQLClass {
         tableSubscribeCreate();
     }
 
-//    public void init(){
+//    public static void loadDriver(){
 //        try {
 //            Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+////            Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+//        }  catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (InvocationTargetException e) {
+//            e.printStackTrace();
 //        } catch (InstantiationException e) {
 //            e.printStackTrace();
 //        } catch (IllegalAccessException e) {
 //            e.printStackTrace();
-//        } catch (InvocationTargetException e) {
-//            e.printStackTrace();
 //        } catch (NoSuchMethodException e) {
-//            e.printStackTrace();
-//        } catch (ClassNotFoundException e) {
 //            e.printStackTrace();
 //        }
 //    }
 
     public Connection getConnection(String dbName) throws SQLException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        String url = "jdbc:mysql://localhost/" + ((dbName != null)? (dbName) : (""));
-        String username = "root";
-        String password = "1234";
-        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
+//        String url = "jdbc:mysql://localhost/" + ((dbName != null)? (dbName) : (""));
+//        String username = "root";
+//        String password = "1234";
+//        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 
-//        Properties props = new Properties();
-//        try(InputStream in = Files.newInputStream(Paths.get(fileName))){
-//            props.load(in);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        Properties props = new Properties();
+        try(InputStream in = Files.newInputStream(Paths.get(fileName))){
+            props.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 //        String driver = props.getProperty("driver");
-//        String url = props.getProperty("url");
-//        String username = props.getProperty("username");
-//        String password = props.getProperty("password");
-//        Class.forName(driver).getDeclaredConstructor().newInstance();
+
+        String url = props.getProperty("url");
+        String username = props.getProperty("username");
+        String password = props.getProperty("password");
+
 //        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
         
         return DriverManager.getConnection(url, username, password);
