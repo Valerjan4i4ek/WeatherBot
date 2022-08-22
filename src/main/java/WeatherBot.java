@@ -12,6 +12,6 @@ public interface WeatherBot extends Remote{
     String getReadyForecastById(int cityId) throws RemoteException;
     String getReadyForecastWithThreeHourStep(String userName) throws RemoteException;
     String getSubscribeTimeByUserName(String userName) throws RemoteException;
-    String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException;
+    Map<Subscribe, Integer> addSubscribe(int cityId, String userName, String cityName, String subscribeTime) throws RemoteException;
     List<CityData> sameNameCitiesCount(String cityName) throws RemoteException, FileNotFoundException;
 }

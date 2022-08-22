@@ -109,7 +109,7 @@ public class Client {
 //        }
     }
 
-    public static void getReadyForecast(String city) throws IOException {
+    public static void getReadyForecast(String city) throws IOException{
         List<CityData> list = weatherBot.sameNameCitiesCount(city);
         Map<Integer, Integer>  checkedMap = new LinkedHashMap<>();
         int count = 1;
@@ -143,7 +143,39 @@ public class Client {
         System.out.println(s);
     }
 
-    public static void addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
-        String s = weatherBot.addSubscribe(userName, cityName, subscribeTime);
+    public static void addSubscribe(String userName, String cityName, String subscribeTime) throws IOException {
+        List<CityData> list = weatherBot.sameNameCitiesCount(cityName);
+        Map<Integer, Integer>  checkedMap = new LinkedHashMap<>();
+        int count = 1;
+        int cityNumber = 0;
+        String id;
+        int cityId = 0;
+        if(list.size() == 1){
+            cityId = list.get(list.size()-1).getId();
+            Map<Subscribe, Integer> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+        }
+        else if(list.size() > 1){
+            for (CityData cityData : list) {
+                System.out.print(count + " ");
+                System.out.println(cityData.getId() + " " + cityData.getName() + " " + cityData.getCountry());
+                checkedMap.put(cityData.getId(), count);
+                count++;
+            }
+            System.out.println("choose your city (number)");
+            cityNumber = Integer.parseInt(reader.readLine());
+            for(Map.Entry<Integer, Integer> pair: checkedMap.entrySet()){
+                if(pair.getValue() == cityNumber){
+                    cityId = pair.getKey();
+                    Map<Subscribe, Integer> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+//                    id = weatherBot.getReadyForecastById(pair.getKey());
+//                    cityId = pair.getKey();
+//                    System.out.println(id);
+//                    String s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+                    System.out.println(s);
+                }
+            }
+        }
+//        String s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+
     }
 }

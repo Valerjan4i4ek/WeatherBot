@@ -58,4 +58,37 @@ public class AuthorizationCache {
             countAuthorization++;
         }
     }
+
+    //    List<User> authorizationCache = sql.getAuthorizationCacheUser();
+
+    //    public String checkAuthorization(String login, String password)  {
+//        if(authorizationCache != null && !authorizationCache.isEmpty()){
+//            for (int i = 0; i < authorizationCache.size(); i++) {
+//                if(authorizationCache.get(i).getUserName().equals(login) && authorizationCache.get(i).getUserPassword().equals(password)){
+//                    System.out.println("AUTHORIZATION IS OK");
+//                    return "AUTHORIZATION IS OK";
+//                }
+//                else if(authorizationCache.get(i).getUserName().equals(login) && !authorizationCache.get(i).getUserPassword().equals(password)){
+//                    System.out.println("INCORRECT PASSWORD");
+//                    return "INCORRECT PASSWORD";
+//                }
+//                else{
+//                    incrementAuthorization();
+//                    authorizationCache.add(new User(countAuthorization, login, password));
+//                    sql.addAuthorization(new User(countAuthorization, login, password));
+//                    System.out.println("NEW REGISTRATION");
+//                    return "NEW REGISTRATION";
+//                }
+//            }
+//        }
+//        else{
+//            incrementAuthorization();
+//            authorizationCache.add(new User(countAuthorization, login, password));
+//            sql.addAuthorization(new User(countAuthorization, login, password));
+//            System.out.println("new registration");
+//            return "new registration";
+//        }
+//        return "";
+//    }
+
 }

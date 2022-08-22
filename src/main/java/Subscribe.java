@@ -1,4 +1,6 @@
-public class Subscribe {
+import java.io.Serializable;
+
+public class Subscribe implements Serializable {
     private int id;
     private String userName;
     private String cityName;

@@ -64,7 +64,7 @@ public class RemoteWeatherBotServer implements WeatherBot{
     }
 
     @Override
-    public String addSubscribe(String userName, String cityName, String subscribeTime) throws RemoteException {
-        return subscribeCache.addSubscribe(userName, cityName, subscribeTime);
+    public Map<Subscribe, Integer> addSubscribe(int cityId, String userName, String cityName, String subscribeTime) throws RemoteException {
+        return subscribeCache.addSubscribe(cityId, userName, cityName, subscribeTime);
     }
 }

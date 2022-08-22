@@ -20,7 +20,7 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
     private final static String API_CALL_TEMPLATE_ID = "https://api.openweathermap.org/data/2.5/weather?id=";
     private final static String API_KEY_TEMPLATE = "&units=metric&APPID=de834929791b3dbe8e75a9cba9eaaf2a";
     private final static String API_KEY_TEMPLATE_ID = "&appid=de834929791b3dbe8e75a9cba9eaaf2a";
-    private final static String API_LAT_TEMPLATE = "http://api.openweathermap.org/geo/1.0/reverse?lat=";
+    private final static String API_LAT_TEMPLATE = "https://api.openweathermap.org/data/2.5/weather?lat=";
     private final static String API_LON_TEMPLATE = "&lon=";
     private final static String API_KEY_TEMPLATE_COORDINATE = "&limit=3&appid=de834929791b3dbe8e75a9cba9eaaf2a";
     private final static String USER_AGENT = "Chrome/104.0.0.0";
@@ -64,9 +64,9 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
         String result;
         try {
             String jsonRawData = downloadJsonRawDataCoordinate(lat, lot);
-            List<String> linesOfForecast = convertRawDataToListCoordinate(jsonRawData);
-            String city = parseForecastDataFromListCoordinate(linesOfForecast);
-            result = getReadyForecast(city);
+//            List<String> linesOfForecast = convertRawDataToListCoordinate(jsonRawData);
+//            String city = parseForecastDataFromListCoordinate(linesOfForecast);
+            result = String.format("%s %s", System.lineSeparator(), parseForecastDataFromListById(jsonRawData));
         } catch (IllegalArgumentException e) {
             return String.format("Can't find \"%s %s\" coordinate. Try another one, for example: \"48.0000\" or \"51.00\"");
         } catch (Exception e) {
@@ -201,39 +201,40 @@ public class OpenWeatherMapJsonParser implements WeatherParser{
         return weatherList;
     }
 
-    private static List<String> convertRawDataToListCoordinate(String data) throws Exception {
-        List<String> weatherList = new ArrayList<>();
+//    private static List<String> convertRawDataToListCoordinate(String data) throws Exception {
+//        List<String> weatherList = new ArrayList<>();
+//
+//        JsonNode arrNode = new ObjectMapper().readTree(data);
+//        if (arrNode != null && arrNode.isArray()) {
+//            for (final JsonNode objNode : arrNode) {
+//                weatherList.add(objNode.toString());
+//            }
+//        }
+//        return weatherList;
+//    }
 
-        JsonNode arrNode = new ObjectMapper().readTree(data);
-        if (arrNode != null && arrNode.isArray()) {
-            for (final JsonNode objNode : arrNode) {
-                weatherList.add(objNode.toString());
-            }
-        }
-        return weatherList;
-    }
 
-
-    private static String parseForecastDataFromListCoordinate(List<String> weatherList) throws Exception {
+    private static String parseForecastDataFromListCoordinate(String data) throws Exception {
+        final StringBuffer sb = new StringBuffer();
         ObjectMapper objectMapper = new ObjectMapper();
 
-        for (String line : weatherList) {
-            {
+        JsonNode mainNode;
+        JsonNode weatherArrNode;
+        JsonNode cloudsNode;
 
-                JsonNode weatherArrNode;
-                String s = "";
-                try {
-                    weatherArrNode = objectMapper.readTree(line).get("name");
-                    s = weatherArrNode.toString();
-                    s = s.replace("\"", "");
-                    return s;
+        try{
+            mainNode = objectMapper.readTree(data).get("main");
+            weatherArrNode = objectMapper.readTree(data).get("weather");
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            for (final JsonNode objNode : weatherArrNode) {
+                cloudsNode = objectMapper.readTree(data).get("clouds");
+                sb.append(formatForecastDataByID(objNode.get("main").toString(), mainNode.get("temp").asDouble(), cloudsNode.toString()));
             }
+
+        }catch (IOException e) {
+            e.printStackTrace();
         }
-        return "";
+        return sb.toString();
     }
 
     private static String parseForecastDataFromListById(String data) throws Exception{
