@@ -321,8 +321,9 @@ public class MySQLClass {
         }
         return city;
     }
-    public Map<Subscribe, Integer> getSubscribeCache(){
-        Map<Subscribe, Integer> map = new ConcurrentHashMap<>();
+
+    public List<Subscribe> getSubscribeUserCache(){
+        List<Subscribe> list = new CopyOnWriteArrayList<>();
         try{
             Connection conn = null;
             PreparedStatement ps = null;
@@ -337,12 +338,13 @@ public class MySQLClass {
                 while (rs.next()){
                     int id = rs.getInt("id");
                     String userName = rs.getString("userName");
+                    int cityId = rs.getInt("cityId");
                     String cityName = rs.getString("cityName");
                     String subscribeTime = rs.getString("subscribeTime");
-                    int cityId = rs.getInt("cityId");
-                    map.put(new Subscribe(id, userName, cityName, subscribeTime), cityId);
+
+                    list.add(new Subscribe(id, userName, cityId, cityName, subscribeTime));
                 }
-            }finally {
+            } finally {
                 try {
                     if (conn != null) {
                         conn.close();
@@ -365,11 +367,61 @@ public class MySQLClass {
                     e.printStackTrace();
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e){
             e.printStackTrace();
         }
-        return map;
+        return list;
     }
+
+//    public Map<Subscribe, Integer> getSubscribeCache(){
+//        Map<Subscribe, Integer> map = new ConcurrentHashMap<>();
+//        try{
+//            Connection conn = null;
+//            PreparedStatement ps = null;
+//            ResultSet rs = null;
+//
+//            try{
+//                conn = getConnection("WeatherBot");
+//                String query = "SELECT * FROM subscribe";
+//                ps = conn.prepareStatement(query);
+//                rs = ps.executeQuery();
+//
+//                while (rs.next()){
+//                    int id = rs.getInt("id");
+//                    String userName = rs.getString("userName");
+//                    String cityName = rs.getString("cityName");
+//                    String subscribeTime = rs.getString("subscribeTime");
+//                    int cityId = rs.getInt("cityId");
+//                    map.put(new Subscribe(id, userName, cityName, subscribeTime), cityId);
+//                }
+//            }finally {
+//                try {
+//                    if (conn != null) {
+//                        conn.close();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    if (ps != null) {
+//                        ps.close();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                try {
+//                    if (rs != null) {
+//                        rs.close();
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }catch (Exception e){
+//            e.printStackTrace();
+//        }
+//        return map;
+//    }
 
 //    public Map<Integer, Map<String, Map<String, String>>> getSubscribeCache(){
 //        Map<Integer, Map<String, Map<String, String>>> map = new ConcurrentHashMap<>();

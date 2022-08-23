@@ -3,12 +3,14 @@ import java.io.Serializable;
 public class Subscribe implements Serializable {
     private int id;
     private String userName;
+    private int cityId;
     private String cityName;
     private String subscribeTime;
 
-    public Subscribe(int id, String userName, String cityName, String subscribeTime) {
+    public Subscribe(int id, String userName, int cityId, String cityName, String subscribeTime) {
         this.id = id;
         this.userName = userName;
+        this.cityId = cityId;
         this.cityName = cityName;
         this.subscribeTime = subscribeTime;
     }
@@ -27,6 +29,14 @@ public class Subscribe implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public int getCityId() {
+        return cityId;
+    }
+
+    public void setCityId(int cityId) {
+        this.cityId = cityId;
     }
 
     public String getCityName() {

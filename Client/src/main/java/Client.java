@@ -55,7 +55,7 @@ public class Client {
             new Thread(() -> {
                 while (!Thread.currentThread().isInterrupted()){
                     try {
-                        Thread.sleep(50000);
+                        Thread.sleep(30000);
                         getSubscribeTimeByUserName(user.getUserName());
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
@@ -152,7 +152,7 @@ public class Client {
         int cityId = 0;
         if(list.size() == 1){
             cityId = list.get(list.size()-1).getId();
-            Map<Subscribe, Integer> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+            Map<String, Subscribe> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
         }
         else if(list.size() > 1){
             for (CityData cityData : list) {
@@ -166,7 +166,7 @@ public class Client {
             for(Map.Entry<Integer, Integer> pair: checkedMap.entrySet()){
                 if(pair.getValue() == cityNumber){
                     cityId = pair.getKey();
-                    Map<Subscribe, Integer> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
+                    Map<String, Subscribe> s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
 //                    id = weatherBot.getReadyForecastById(pair.getKey());
 //                    cityId = pair.getKey();
 //                    System.out.println(id);

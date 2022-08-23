@@ -6,82 +6,136 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SubscribeCache {
     MySQLClass sql = new MySQLClass();
-    Map<Subscribe, Integer> subscribeCache = sql.getSubscribeCache();
-    Map<String, String> innerSubscribeMap = new ConcurrentHashMap<>();
-
-//    Map<Integer, Map<String, Map<String, String>>> subscribeCache = sql.getSubscribeCache();
+    List<Subscribe> listSubscribeCache = sql.getSubscribeUserCache();
+    Map<String, Subscribe> subscribeCacheMap = getInnerMapSubscribe(listSubscribeCache);
     OpenWeatherMapJsonParser openWeatherMapJsonParser = new OpenWeatherMapJsonParser();
     List<Integer> listSubscribe;
     int countSubscribe;
 
-    public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
-        String city = "";
-        if(subscribeCache != null && !subscribeCache.isEmpty()){
-            for(Map.Entry<Subscribe, Integer> entry : subscribeCache.entrySet()){
-                if(entry.getKey().getUserName().equalsIgnoreCase(userName)){
-                    city = entry.getKey().getCityName();
-                }
-            }
+    public Map<String, Subscribe> getInnerMapSubscribe(List<Subscribe> list){
+        Map<String, Subscribe> map = new ConcurrentHashMap<>();
+        for(Subscribe subscribe : list){
+            map.put(subscribe.getUserName(), subscribe);
         }
-//        String city = sql.getCityByUserName(userName);
+        return map;
+    }
+
+    public String getReadyForecastWithThreeHourStep(String userName){
+        String city = "";
+        if(subscribeCacheMap.containsKey(userName)){
+            city = subscribeCacheMap.get(userName).getCityName();
+        }
         return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
     }
 
-    public String getSubscribeTimeByUserName(String userName) throws RemoteException {
+    public String getSubscribeTimeByUserName(String userName){
         String subscribeTime = "";
-        for(Map.Entry<Subscribe, Integer> entry : subscribeCache.entrySet()){
-            if(entry.getKey().getUserName().equalsIgnoreCase(userName)){
-                subscribeTime = entry.getKey().getSubscribeTime();
-            }
+        if(subscribeCacheMap.containsKey(userName)){
+            subscribeTime = subscribeCacheMap.get(userName).getCityName();
         }
         return subscribeTime;
-//        return sql.getSubscribeTimeByUserName(userName);
     }
 
-    public Map<String, String> getInnerMap(Map<Subscribe, Integer> map){
-        Map<String, String> returnMap = new ConcurrentHashMap<>();
-        for(Map.Entry<Subscribe, Integer> entry : map.entrySet()){
-            returnMap.put(entry.getKey().getUserName(), entry.getKey().getCityName());
-        }
-        return returnMap;
-    }
-
-
-    public Map<Subscribe, Integer> addSubscribe(int cityId, String userName, String cityName, String subscribeTime) {
-        if(subscribeCache != null && !subscribeCache.isEmpty()){
-            innerSubscribeMap = getInnerMap(subscribeCache);
-            if(innerSubscribeMap.containsKey(userName)){
-                innerSubscribeMap.put(userName, cityName);
-                subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+    Map<String, Subscribe> addSubscribe(int cityId, String userName, String cityName, String subscribeTime){
+        if(subscribeCacheMap != null && !subscribeCacheMap.isEmpty()){
+            if(subscribeCacheMap.containsKey(userName)){
+                subscribeCacheMap.put(userName, new Subscribe(countSubscribe, userName, cityId, cityName, subscribeTime));
                 sql.replaceSubscribeTime(userName, cityId, cityName, subscribeTime);
             }
             else{
                 incrementSubscribe();
-                subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-                sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+                subscribeCacheMap.put(userName, new Subscribe(countSubscribe, userName, cityId, cityName, subscribeTime));
+                sql.addSubscribe(new Subscribe(countSubscribe, userName, cityId, cityName, subscribeTime), cityId);
             }
+        }
+        else{
+            incrementSubscribe();
+            subscribeCacheMap.put(userName, new Subscribe(countSubscribe, userName, cityId, cityName, subscribeTime));
+            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityId, cityName, subscribeTime), cityId);
+        }
+        return subscribeCacheMap;
+    }
 
+    public void incrementSubscribe(){
+        listSubscribe = sql.checkSubscribeId();
+        if(listSubscribe != null && !listSubscribe.isEmpty()){
+            countSubscribe = listSubscribe.get(listSubscribe.size()-1);
+            countSubscribe++;
+        }
+        else {
+            countSubscribe++;
+        }
+    }
+
+//    Map<Subscribe, Integer> subscribeCache = sql.getSubscribeCache();
+//    Map<String, String> innerSubscribeMap = new ConcurrentHashMap<>();
+    //    public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
+//        String city = "";
+//        if(subscribeCache != null && !subscribeCache.isEmpty()){
 //            for(Map.Entry<Subscribe, Integer> entry : subscribeCache.entrySet()){
 //                if(entry.getKey().getUserName().equalsIgnoreCase(userName)){
-//                    subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-//                    sql.replaceSubscribeTime(userName, cityId, cityName, subscribeTime);
-//                    break;
-//                }
-//                else{
-//                    incrementSubscribe();
-//                    subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-//                    sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-//                    break;
+//                    city = entry.getKey().getCityName();
 //                }
 //            }
-        }else{
-            incrementSubscribe();
-            subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
-        }
+//        }
+////        String city = sql.getCityByUserName(userName);
+//        return openWeatherMapJsonParser.getReadyForecastWithThreeHourStep(city);
+//    }
+    //    public String getSubscribeTimeByUserName(String userName) throws RemoteException {
+//        String subscribeTime = "";
+//        for(Map.Entry<Subscribe, Integer> entry : subscribeCache.entrySet()){
+//            if(entry.getKey().getUserName().equalsIgnoreCase(userName)){
+//                subscribeTime = entry.getKey().getSubscribeTime();
+//            }
+//        }
+//        return subscribeTime;
+////        return sql.getSubscribeTimeByUserName(userName);
+//    }
+    //    public Map<String, String> getInnerMap(Map<Subscribe, Integer> map){
+//        Map<String, String> returnMap = new ConcurrentHashMap<>();
+//        for(Map.Entry<Subscribe, Integer> entry : map.entrySet()){
+//            returnMap.put(entry.getKey().getUserName(), entry.getKey().getCityName());
+//        }
+//        return returnMap;
+//    }
+    //    public Map<Subscribe, Integer> addSubscribe(int cityId, String userName, String cityName, String subscribeTime) {
+//        if(subscribeCache != null && !subscribeCache.isEmpty()){
+//            innerSubscribeMap = getInnerMap(subscribeCache);
+//            if(innerSubscribeMap.containsKey(userName)){
+//                innerSubscribeMap.put(userName, cityName);
+//                subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+//                sql.replaceSubscribeTime(userName, cityId, cityName, subscribeTime);
+//            }
+//            else{
+//                incrementSubscribe();
+//                subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+//                sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+//            }
+//
+////            for(Map.Entry<Subscribe, Integer> entry : subscribeCache.entrySet()){
+////                if(entry.getKey().getUserName().equalsIgnoreCase(userName)){
+////                    subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+////                    sql.replaceSubscribeTime(userName, cityId, cityName, subscribeTime);
+////                    break;
+////                }
+////                else{
+////                    incrementSubscribe();
+////                    subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+////                    sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+////                    break;
+////                }
+////            }
+//        }else{
+//            incrementSubscribe();
+//            subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+//            sql.addSubscribe(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
+//        }
+//
+//        return subscribeCache;
+//    }
 
-        return subscribeCache;
-    }
+
+
 
 //    public String getReadyForecastWithThreeHourStep(String userName) throws RemoteException {
 //        String city = "";
@@ -141,14 +195,4 @@ public class SubscribeCache {
 //        return "";
 //    }
 
-    public void incrementSubscribe(){
-        listSubscribe = sql.checkSubscribeId();
-        if(listSubscribe != null && !listSubscribe.isEmpty()){
-            countSubscribe = listSubscribe.get(listSubscribe.size()-1);
-            countSubscribe++;
-        }
-        else {
-            countSubscribe++;
-        }
-    }
 }
