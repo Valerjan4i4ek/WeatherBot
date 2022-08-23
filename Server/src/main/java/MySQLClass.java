@@ -425,6 +425,54 @@ public class MySQLClass {
 //        return map;
 //    }
 
+    public List<User> getAuthorizationUserCache(){
+        List<User> list = new CopyOnWriteArrayList<>();
+        try{
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            try{
+                conn = getConnection("WeatherBot");
+                String query = "SELECT * FROM authorization";
+                ps = conn.prepareStatement(query);
+                rs = ps.executeQuery();
+
+                while (rs.next()){
+                    int id = rs.getInt("id");
+                    String login = rs.getString("login");
+                    String password = rs.getString("password");
+                    list.add(new User(id, login, password));
+                }
+            } finally {
+                try {
+                    if (conn != null) {
+                        conn.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (ps != null) {
+                        ps.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    if (rs != null) {
+                        rs.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public Map<Integer, Map<String, String>> getAuthorizationCache(){
         Map<Integer, Map<String, String>> map = new ConcurrentHashMap<>();
         Map<String, String> innerMap = new ConcurrentHashMap<>();
