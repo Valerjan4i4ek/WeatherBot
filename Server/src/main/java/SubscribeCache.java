@@ -31,7 +31,7 @@ public class SubscribeCache {
     public String getSubscribeTimeByUserName(String userName){
         String subscribeTime = "";
         if(subscribeCacheMap.containsKey(userName)){
-            subscribeTime = subscribeCacheMap.get(userName).getCityName();
+            subscribeTime = subscribeCacheMap.get(userName).getSubscribeTime();
         }
         return subscribeTime;
     }
