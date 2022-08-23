@@ -55,7 +55,7 @@ public class Client {
             new Thread(() -> {
                 while (!Thread.currentThread().isInterrupted()){
                     try {
-                        Thread.sleep(30000);
+                        Thread.sleep(50000);
                         getSubscribeTimeByUserName(user.getUserName());
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
@@ -171,7 +171,7 @@ public class Client {
 //                    cityId = pair.getKey();
 //                    System.out.println(id);
 //                    String s = weatherBot.addSubscribe(cityId, userName, cityName, subscribeTime);
-                    System.out.println(s);
+//                    System.out.println(s);
                 }
             }
         }

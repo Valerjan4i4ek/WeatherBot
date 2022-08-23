@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MySQLClass {
-    private final static String fileName = "Server/src/main/resources/database.properties";
+    private final static String fileName = "database.properties";
 
     static{
         try {
@@ -52,8 +52,10 @@ public class MySQLClass {
 //        Class.forName("com.mysql.cj.jdbc.Driver").getDeclaredConstructor().newInstance();
 
         Properties props = new Properties();
-        try(InputStream in = Files.newInputStream(Paths.get(fileName))){
-            props.load(in);
+        try(InputStream in = getClass().getClassLoader().getResourceAsStream(fileName)){
+            if(in != null){
+                props.load(in);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

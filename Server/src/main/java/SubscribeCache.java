@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SubscribeCache {
     MySQLClass sql = new MySQLClass();
     Map<Subscribe, Integer> subscribeCache = sql.getSubscribeCache();
-    Map<String, String> innerSubscribeMap = getInnerMap(subscribeCache);
+    Map<String, String> innerSubscribeMap = new ConcurrentHashMap<>();
 
 //    Map<Integer, Map<String, Map<String, String>>> subscribeCache = sql.getSubscribeCache();
     OpenWeatherMapJsonParser openWeatherMapJsonParser = new OpenWeatherMapJsonParser();
@@ -49,6 +49,7 @@ public class SubscribeCache {
 
     public Map<Subscribe, Integer> addSubscribe(int cityId, String userName, String cityName, String subscribeTime) {
         if(subscribeCache != null && !subscribeCache.isEmpty()){
+            innerSubscribeMap = getInnerMap(subscribeCache);
             if(innerSubscribeMap.containsKey(userName)){
                 innerSubscribeMap.put(userName, cityName);
                 subscribeCache.put(new Subscribe(countSubscribe, userName, cityName, subscribeTime), cityId);
