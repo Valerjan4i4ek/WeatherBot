@@ -6,35 +6,43 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthorizationCache {
     MySQLClass sql = new MySQLClass();
     List<User> authorizationList = sql.getAuthorizationUserCache();
+    Map<String, User> authorizationCacheInnerMap = getInnerMapAuthorization(authorizationList);
     List<Integer> listUsers;
     int countAuthorization;
+
+    public Map<String, User> getInnerMapAuthorization(List<User> list){
+        Map<String, User> map = new ConcurrentHashMap<>();
+        for(User user : list){
+            map.put(user.getUserName(), user);
+        }
+        return map;
+    }
+
     public String checkAuthorization(String login, String password){
         if(authorizationList != null && !authorizationList.isEmpty()){
-            for(User user : authorizationList){
-                if(user.getUserName().equalsIgnoreCase(login) && user.getUserPassword().equalsIgnoreCase(password)){
-                    System.out.println("AUTHORIZATION IS OK");
-                    return "AUTHORIZATION IS OK";
-                }
-                else if(user.getUserName().equalsIgnoreCase(login) && !user.getUserPassword().equalsIgnoreCase(password)){
-                    System.out.println("INCORRECT PASSWORD");
-                    return "INCORRECT PASSWORD";
-                }
-                else{
-                    incrementAuthorization();
-                    authorizationList.add(new User(countAuthorization, login, password));
-                    sql.addAuthorization(new User(countAuthorization, login, password));
-                    System.out.println("NEW REGISTRATION");
-                    return "NEW REGISTRATION";
-                }
+            if(authorizationCacheInnerMap.containsKey(login) && authorizationCacheInnerMap.get(login).getUserPassword().equals(password)){
+                System.out.println("AUTHORIZATION IS OK");
+                return "AUTHORIZATION IS OK";
+            }
+            else if(authorizationCacheInnerMap.containsKey(login) && !authorizationCacheInnerMap.get(login).getUserPassword().equals(password)){
+                System.out.println("INCORRECT PASSWORD");
+                return "INCORRECT PASSWORD";
+            }
+            else{
+                incrementAuthorization();
+                authorizationCacheInnerMap.put(login, new User(countAuthorization, login, password));
+                sql.addAuthorization(new User(countAuthorization, login, password));
+                System.out.println("NEW REGISTRATION");
+                return "NEW REGISTRATION";
             }
         } else{
             incrementAuthorization();
-            authorizationList.add(new User(countAuthorization, login, password));
+            authorizationCacheInnerMap.put(login, new User(countAuthorization, login, password));
             sql.addAuthorization(new User(countAuthorization, login, password));
             System.out.println("NEW REGISTRATION");
             return "NEW REGISTRATION";
         }
-        return "";
+//        return "";
     }
 
 //    Map<Integer, Map<String, String>> authorizationCache = sql.getAuthorizationCache();
@@ -75,10 +83,10 @@ public class AuthorizationCache {
 //            sql.addAuthorization(new User(countAuthorization, login, password));
 //            System.out.println("new registration");
 //            return "new registration";
-//        }
+////        }
+////
+////    }
 //
-//    }
-
     public void incrementAuthorization(){
         listUsers = sql.checkUserId();
         if(listUsers != null && !listUsers.isEmpty()){
